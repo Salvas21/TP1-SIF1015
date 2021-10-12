@@ -8,3 +8,4 @@ gestionVMS.o: gestionVMS.c gestionListeChaineeVMS.h gestionVMS.h
 	gcc -c gestionVMS.c -Wall -I.
 clean:
 	rm *.o
+	rm gestionVMS_MAIN
