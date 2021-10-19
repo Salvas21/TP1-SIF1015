@@ -13,6 +13,11 @@
 #include <sys/termios.h>
 #include <sys/mman.h>
 
+typedef struct test_struct{
+    int nstart;
+    int nend;
+} test_struct;
+
 /* Registers */
 enum
 {

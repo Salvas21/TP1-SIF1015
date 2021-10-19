@@ -83,7 +83,7 @@ struct noeudVM * findPrev(const int no){
 //# Ajoute un item a la fin de la liste chaînée de VM
 //# ENTREE: 
 //#	RETOUR:  
-void addItem(){
+void* addItem(){
 	//Création de l'enregistrement en mémoire
 	struct noeudVM* ni = (struct noeudVM*)malloc(sizeof(struct noeudVM));
 //printf("\n noVM=%d busy=%d adr ni=%p", ni->VM.noVM, ni->VM.busy, ni);
@@ -100,7 +100,7 @@ void addItem(){
 	if ((head == NULL) && (queue == NULL)){//liste vide
 	  ni->suivant= NULL;
 	  queue = head = ni;
-	  return;
+	  return NULL;
 	}
 	struct noeudVM* tptr = queue;
 	ni->suivant= NULL;
@@ -109,19 +109,20 @@ void addItem(){
 	tptr->suivant = ni;
 //printf("\n noVM=%d busy=%d adr Queue=%p", ni->VM.noVM, ni->VM.busy,queue);
 
-
+	return NULL;
 }
 
 //#######################################
 //# Retire un item de la liste chaînée
 //# ENTREE: noVM: numéro du noeud a retirer 
-void removeItem(const int noVM){
+void* removeItem(void *args){
 	struct noeudVM * ptr;
 	struct noeudVM * tptr;
 	struct noeudVM * optr;
+	int noVM = *((int*)args);
 	//Vérification sommaire (noVM>0 et liste non vide)	
 	if ((noVM<1)||((head==NULL)&&(queue==NULL)))
-		return;
+		return NULL;
 
 	//Pointeur de recherche
 	if(noVM==1){
@@ -144,7 +145,7 @@ void removeItem(const int noVM){
 				free(ptr->VM.ptrDebutVM);
 				free(ptr);
 				queue = head = NULL;
-				return;
+				return NULL;
 			}
 			tptr = ptr->suivant;
 			head = tptr;
@@ -157,7 +158,7 @@ void removeItem(const int noVM){
 			free(ptr->suivant->VM.ptrDebutVM);
 			free(ptr->suivant);
 			ptr->suivant=NULL;
-			return;
+			return NULL;
 		}
 		else // suppression d'un element dans la liste
 		{
@@ -179,14 +180,18 @@ void removeItem(const int noVM){
 			tptr=tptr->suivant;
 		}
 	}
+
+	return NULL;
 }
 
 //#######################################
 //#
 //# Affiche les items dont le numéro séquentiel est compris dans une plage
 //#
-void listItems(const int start, const int end){
+void* listItems(void* args){
 
+	int start = ((struct test_struct*)args)->nstart;
+	int end = ((struct test_struct*)args)->nend;
 	//Affichage des entêtes de colonnes
 	printf("noVM  Busy?		Adresse Debut VM                        \n");
 	printf("========================================================\n");
@@ -212,9 +217,12 @@ void listItems(const int start, const int end){
 			ptr = ptr->suivant;
 		}
 
+
 	}
 
 	//Affichage des pieds de colonnes
 	printf("========================================================\n\n");
-	}
+
+	return NULL;
+}
 

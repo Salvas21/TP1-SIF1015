@@ -491,6 +491,8 @@ void* readTrans(char* nomFichier){
 	//Lecture (tentative) d'une ligne de texte
 	fgets(buffer, 100, f);
 
+    pthread_t thread;
+
 	//Pour chacune des lignes lues
 	while(!feof(f)){
 
@@ -502,15 +504,25 @@ void* readTrans(char* nomFichier){
 			case 'A':
 			case 'a':{
 				//Appel de la fonction associée
-				addItem(); // Ajout de une VM
+				//addItem(); // Ajout de une VM
+                pthread_create(&thread, NULL, addItem, NULL);
 				break;
 				}
 			case 'E':
 			case 'e':{
 				//Extraction du paramètre
 				int noVM = atoi(strtok_r(NULL, " ", &sp));
+                
+                // typedef struct {
+                //     int* noVM;
+                // } test_struct;
+
+                int *args = malloc(sizeof *args);
+                //args->noVM = &noVM;
+                *args = noVM;
 				//Appel de la fonction associée
-				removeItem(noVM); // Eliminer une VM
+				//removeItem(noVM); // Eliminer une VM
+                pthread_create(&thread, NULL, removeItem, args);
 				break;
 				}
 			case 'L':
@@ -519,7 +531,14 @@ void* readTrans(char* nomFichier){
 				int nstart = atoi(strtok_r(NULL, "-", &sp));
 				int nend = atoi(strtok_r(NULL, " ", &sp));
 				//Appel de la fonction associée
-				listItems(nstart, nend); // Lister les VM
+				//listItems(nstart, nend); // Lister les VM
+
+                struct test_struct *args;
+                args = malloc(sizeof(struct test_struct));
+                args->nstart = nstart;
+                args->nend = nend;
+
+                pthread_create(&thread, NULL, listItems, args);
 				break;
 				}
 			case 'X':
@@ -536,6 +555,8 @@ void* readTrans(char* nomFichier){
 	}
 	//Fermeture du fichier
 	fclose(f);
+
+    pthread_join(thread, NULL);
 	//Retour
 	return NULL;
 }

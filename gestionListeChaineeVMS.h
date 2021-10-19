@@ -22,9 +22,9 @@ void error(const int exitcode, const char * message);
 struct noeudVM * findItem(const int no);
 struct noeudVM * findPrev(const int no);
 
-void addItem();
-void removeItem(const int noVM);
-void listItems(const int start, const int end);
+void* addItem();
+void* removeItem(void *args);
+void* listItems(void *args);
 void saveItems(const char* sourcefname);
 int executeFile(int noVM, char* sourcefname);
 
