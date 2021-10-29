@@ -29,3 +29,7 @@ void saveItems(const char* sourcefname);
 int executeFile(int noVM, char* sourcefname);
 
 void* readTrans(char* nomFichier);
+
+pthread_mutex_t modLock;
+
+void* modifier(void *param);

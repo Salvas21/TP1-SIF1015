@@ -483,6 +483,9 @@ void* readTrans(char* nomFichier){
 	char buffer[100];
 	char *tok, *sp;
 
+    pthread_t tid[1000];
+	int nbThread = 0;
+
 	//Ouverture du fichier en mode "r" (equiv. "rt") : [r]ead [t]ext
 	f = fopen(nomFichier, "rt");
 	if (f==NULL)
@@ -490,6 +493,12 @@ void* readTrans(char* nomFichier){
 
 	//Lecture (tentative) d'une ligne de texte
 	fgets(buffer, 100, f);
+
+    if (pthread_mutex_init(&modLock, NULL) != 0)
+    {
+        printf("\n mutex init failed\n");
+        return 1;
+    }
 
     pthread_t thread;
 
@@ -549,6 +558,16 @@ void* readTrans(char* nomFichier){
 				executeFile(noVM, nomfich); // Executer le code binaire du fichier nomFich sur la VM noVM
 				break;
 				}
+            case 'M':
+            case 'm':{
+                int noVM = atoi(strtok_r(NULL, " ", &sp));
+                // check how to get second param
+                int Lmem = atoi(strtok_r(NULL, "\n", &sp));
+                struct paramMod *ptr = (struct paramMod*) malloc(sizeof(struct paramMod));
+                ptr->noVM = noVM;
+                ptr->Lmem = Lmem;
+                pthread_create(&tid[nbThread++], NULL, modifier, ptr);
+            }
 		}
 		//Lecture (tentative) de la prochaine ligne de texte
 		fgets(buffer, 100, f);

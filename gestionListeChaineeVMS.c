@@ -226,3 +226,27 @@ void* listItems(void* args){
 	return NULL;
 }
 
+void* modifier(void* param){
+	pthread_mutex_lock(&modLock);
+	int noVM;
+	int Lmem;
+
+	noVM = ((struct paramMod*) param) ->noVM;
+	Lmem = ((struct paramMod*) param) ->Lmem;
+
+	free(param);
+
+	struct noeudVM * ptr =  findItem(noVM); // si ptr non NULL, noeud verrouille
+	if(ptr == NULL)
+	{
+		printf("Virtual Machine unavailable\n");
+		//return(0);
+		pthread_exit(0);
+	}
+
+	ptr->VM.ptrDebutVM = (unsigned short*)malloc(sizeof(unsigned short) * 65536 * Lmem);
+	// ptr->VM.ptrDebutVM = (unsigned short *) realloc(ptr->VM.ptrDebutVM, ptr->VM.ptrDebutVM + Lmem);
+
+	pthread_mutex_unlock(&modLock);
+	return NULL;
+}

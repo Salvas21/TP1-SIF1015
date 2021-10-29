@@ -18,6 +18,11 @@ typedef struct test_struct{
     int nend;
 } test_struct;
 
+typedef struct paramMod{
+	int noVM;
+	int Lmem;
+} paramMod;
+
 /* Registers */
 enum
 {
