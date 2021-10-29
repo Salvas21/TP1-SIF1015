@@ -13,8 +13,8 @@ struct infoVM{
 
 struct noeudVM{			
 	struct infoVM	VM;		
-	struct noeudVM		*suivant;	
-	// mutex here
+	struct noeudVM	*suivant;	
+	pthread_mutex_t mutexVM;
 	};	
 	
 void cls(void);
@@ -27,10 +27,7 @@ void* addItem();
 void* removeItem(void *args);
 void* listItems(void *args);
 void saveItems(const char* sourcefname);
-int executeFile(int noVM, char* sourcefname);
+void* executeFile(void *args);
 
 void* readTrans(char* nomFichier);
-
-pthread_mutex_t modLock;
-
 void* modifier(void *param);

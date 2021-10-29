@@ -21,6 +21,10 @@ extern struct noeudVM* queue;
 // nombre de VM actives
 extern int nbVM;
 
+extern pthread_mutex_t mutexH;
+
+extern pthread_mutex_t mutexQ;
+
 //#######################################
 //# Recherche un item dans la liste chaînée
 //# ENTREE: Numéro de la ligne
@@ -30,27 +34,52 @@ extern int nbVM;
 //#
 struct noeudVM * findItem(const int no){
 	//La liste est vide 
-	if ((head==NULL)&&(queue==NULL)) return NULL;
+	pthread_mutex_lock(&mutexH);
+	pthread_mutex_lock(&mutexQ);
 
+	if ((head==NULL)&&(queue==NULL)) {
+		pthread_mutex_unlock(&mutexH);
+		pthread_mutex_unlock(&mutexQ);
+		return NULL;
+	}
+
+	pthread_mutex_lock(&head->mutexVM);
 	//Pointeur de navigation
 	struct noeudVM * ptr = head;
 
+	pthread_mutex_unlock(&mutexH);
+	pthread_mutex_unlock(&mutexQ);
+
 	if(ptr->VM.noVM==no) // premier noeudVM
 		return ptr;
+
+	if (ptr->suivant != NULL) {
+		pthread_mutex_lock(&ptr->suivant->mutexVM);
+	} else {
+		pthread_mutex_unlock(&ptr->mutexVM);
+	}
 	//Tant qu'un item suivant existe
 	while (ptr->suivant!=NULL){
 
+		struct noeudVM* optr = ptr;
 		//Déplacement du pointeur de navigation
 		ptr=ptr->suivant;
 
+		pthread_mutex_unlock(&optr->mutexVM);
 		//Est-ce l'item recherché?
 		if (ptr->VM.noVM==no){
 			return ptr;
-			}
 		}
+		if (ptr->suivant != NULL) {
+			pthread_mutex_lock(&ptr->suivant->mutexVM);
+		} else {
+			pthread_mutex_unlock(&ptr->mutexVM);
+		}
+	}
+
 	//On retourne un pointeur NULL
 	return NULL;
-	}
+}
 
 //#######################################
 //#
@@ -86,6 +115,11 @@ struct noeudVM * findPrev(const int no){
 void* addItem(){
 	//Création de l'enregistrement en mémoire
 	struct noeudVM* ni = (struct noeudVM*)malloc(sizeof(struct noeudVM));
+
+	if (pthread_mutex_init(&ni->mutexVM,NULL) != 0) {
+		printf("\n mutex init failed.\n");
+		return NULL;
+	}
 //printf("\n noVM=%d busy=%d adr ni=%p", ni->VM.noVM, ni->VM.busy, ni);
 //printf("\n noVM=%d busy=%d adrQ deb=%p", ni->VM.noVM, ni->VM.busy,queue);
 
@@ -109,7 +143,7 @@ void* addItem(){
 	tptr->suivant = ni;
 //printf("\n noVM=%d busy=%d adr Queue=%p", ni->VM.noVM, ni->VM.busy,queue);
 
-	return NULL;
+	pthread_exit(0);
 }
 
 //#######################################
@@ -166,6 +200,7 @@ void* removeItem(void *args){
 			ptr->suivant = ptr->suivant->suivant;
 			tptr = ptr->suivant;
 			free(optr->VM.ptrDebutVM);
+			pthread_mutex_destroy(&ptr->mutexVM);
 			free(optr);
 		}
 		
@@ -181,7 +216,7 @@ void* removeItem(void *args){
 		}
 	}
 
-	return NULL;
+	pthread_exit(0);
 }
 
 //#######################################
@@ -223,11 +258,10 @@ void* listItems(void* args){
 	//Affichage des pieds de colonnes
 	printf("========================================================\n\n");
 
-	return NULL;
+	pthread_exit(0);
 }
 
 void* modifier(void* param){
-	pthread_mutex_lock(&modLock);
 	int noVM;
 	int Lmem;
 
@@ -247,6 +281,5 @@ void* modifier(void* param){
 	ptr->VM.ptrDebutVM = (unsigned short*)malloc(sizeof(unsigned short) * 65536 * Lmem);
 	// ptr->VM.ptrDebutVM = (unsigned short *) realloc(ptr->VM.ptrDebutVM, ptr->VM.ptrDebutVM + Lmem);
 
-	pthread_mutex_unlock(&modLock);
-	return NULL;
+	pthread_exit(0);
 }

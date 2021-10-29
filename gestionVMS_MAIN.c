@@ -21,6 +21,10 @@ struct noeud* queue;
 // nombre de VM actives
 int nbVM;
 
+pthread_mutex_t mutexH;
+
+pthread_mutex_t mutexQ;
+
 
 int main(int argc, char* argv[]){
 
@@ -29,6 +33,13 @@ int main(int argc, char* argv[]){
 	queue = NULL;
 	nbVM = 0;
 
+	if (pthread_mutex_init(&mutexH,NULL) != 0 || pthread_mutex_init(&mutexQ,NULL) != 0) {
+		printf("\n mutex init failed.\n");
+		return(1);
+	}
+
+	
+
 	//"Nettoyage" de la fenêtre console
 	//cls();
 
@@ -36,6 +47,6 @@ int main(int argc, char* argv[]){
 
 
 	//Fin du programme
-	exit( 0);
+	exit(0);
 }
 

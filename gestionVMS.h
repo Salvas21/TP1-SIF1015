@@ -23,6 +23,11 @@ typedef struct paramMod{
 	int Lmem;
 } paramMod;
 
+typedef struct paramX {
+    int noVM;
+    char nomfich[100];
+} paramX;
+
 /* Registers */
 enum
 {

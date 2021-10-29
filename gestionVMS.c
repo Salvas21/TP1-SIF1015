@@ -164,11 +164,17 @@ void handle_interrupt(int signal)
 //#
 //# Execute le fichier de code .obj 
 //#
-int executeFile(int noVM, char* sourcefname){
+void* executeFile(void* args){
+char sourcefname[100];
+int noVM;
 
+noVM = ((struct paramX*)args)->noVM;
+strcpy(sourcefname, (const char *) ((struct paramX*)args)->nomfich);
+
+free(args);
 /* Memory Storage */
 /* 65536 locations */
-	uint16_t *  memory;
+	uint16_t * memory;
 	uint16_t origin;
 	uint16_t PC_START;
 	
@@ -180,13 +186,15 @@ int executeFile(int noVM, char* sourcefname){
     if(ptr == NULL)
     {
         printf("Virtual Machine unavailable\n");
-        return(0);
+        pthread_exit(0);
     }	
+
 	memory = ptr->VM.ptrDebutVM;
     if (!read_image_file(memory, sourcefname, &origin))
     {
         printf("Failed to load image: %s\n", sourcefname);
-        return(0);
+        pthread_mutex_unlock(&ptr->mutexVM);
+        pthread_exit(0);
     }
 	
     while(ptr->VM.busy != 0){ // wait for the VM 
@@ -469,7 +477,9 @@ int executeFile(int noVM, char* sourcefname){
     ptr->VM.busy = 0;
     /* Shutdown */
     restore_input_buffering();
-    return(1);
+
+    pthread_mutex_unlock(&ptr->mutexVM);
+    pthread_exit(1);
 }
 
 
@@ -494,14 +504,6 @@ void* readTrans(char* nomFichier){
 	//Lecture (tentative) d'une ligne de texte
 	fgets(buffer, 100, f);
 
-    if (pthread_mutex_init(&modLock, NULL) != 0)
-    {
-        printf("\n mutex init failed\n");
-        return 1;
-    }
-
-    pthread_t thread;
-
 	//Pour chacune des lignes lues
 	while(!feof(f)){
 
@@ -514,7 +516,7 @@ void* readTrans(char* nomFichier){
 			case 'a':{
 				//Appel de la fonction associée
 				//addItem(); // Ajout de une VM
-                pthread_create(&thread, NULL, addItem, NULL);
+                pthread_create(&tid[nbThread++], NULL, addItem, NULL);
 				break;
 				}
 			case 'E':
@@ -531,7 +533,7 @@ void* readTrans(char* nomFichier){
                 *args = noVM;
 				//Appel de la fonction associée
 				//removeItem(noVM); // Eliminer une VM
-                pthread_create(&thread, NULL, removeItem, args);
+                pthread_create(&tid[nbThread++], NULL, removeItem, args);
 				break;
 				}
 			case 'L':
@@ -547,7 +549,7 @@ void* readTrans(char* nomFichier){
                 args->nstart = nstart;
                 args->nend = nend;
 
-                pthread_create(&thread, NULL, listItems, args);
+                pthread_create(&tid[nbThread++], NULL, listItems, args);
 				break;
 				}
 			case 'X':
@@ -555,19 +557,25 @@ void* readTrans(char* nomFichier){
 				//Appel de la fonction associée
 				int noVM = atoi(strtok_r(NULL, " ", &sp));
 				char *nomfich = strtok_r(NULL, "\n", &sp);
-				executeFile(noVM, nomfich); // Executer le code binaire du fichier nomFich sur la VM noVM
+
+                struct paramX *args;
+                args = malloc(sizeof(struct paramX));
+                args->noVM = noVM;
+                strcpy(args->nomfich, (const char *) nomfich);
+
+                pthread_create(&tid[nbThread++], NULL, executeFile, args);
 				break;
 				}
-            case 'M':
-            case 'm':{
-                int noVM = atoi(strtok_r(NULL, " ", &sp));
-                // check how to get second param
-                int Lmem = atoi(strtok_r(NULL, "\n", &sp));
-                struct paramMod *ptr = (struct paramMod*) malloc(sizeof(struct paramMod));
-                ptr->noVM = noVM;
-                ptr->Lmem = Lmem;
-                pthread_create(&tid[nbThread++], NULL, modifier, ptr);
-            }
+            // case 'M':
+            // case 'm':{
+            //     int noVM = atoi(strtok_r(NULL, " ", &sp));
+            //     // check how to get second param
+            //     int Lmem = atoi(strtok_r(NULL, "\n", &sp));
+            //     struct paramMod *ptr = (struct paramMod*) malloc(sizeof(struct paramMod));
+            //     ptr->noVM = noVM;
+            //     ptr->Lmem = Lmem;
+            //     pthread_create(&tid[nbThread++], NULL, modifier, ptr);
+            // }
 		}
 		//Lecture (tentative) de la prochaine ligne de texte
 		fgets(buffer, 100, f);
@@ -575,7 +583,8 @@ void* readTrans(char* nomFichier){
 	//Fermeture du fichier
 	fclose(f);
 
-    pthread_join(thread, NULL);
+    for(int i=0;i<nbThread;i++)
+        pthread_join(&tid[i], NULL);
 	//Retour
 	return NULL;
 }
