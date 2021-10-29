@@ -14,6 +14,7 @@ struct infoVM{
 struct noeudVM{			
 	struct infoVM	VM;		
 	struct noeudVM		*suivant;	
+	// mutex here
 	};	
 	
 void cls(void);

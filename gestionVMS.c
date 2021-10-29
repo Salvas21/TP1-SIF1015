@@ -549,6 +549,7 @@ void* readTrans(char* nomFichier){
 				executeFile(noVM, nomfich); // Executer le code binaire du fichier nomFich sur la VM noVM
 				break;
 				}
+            
 		}
 		//Lecture (tentative) de la prochaine ligne de texte
 		fgets(buffer, 100, f);
