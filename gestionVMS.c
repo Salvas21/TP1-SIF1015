@@ -553,6 +553,8 @@ void* readTrans(char* nomFichier){
 
                 nbThread++;
                 pthread_create(&tid[nbThread], NULL, listItems, args);
+                for(int i=1;i<nbThread;i++)
+                    pthread_join(tid[i], NULL);
 				break;
 				}
 			case 'X':
