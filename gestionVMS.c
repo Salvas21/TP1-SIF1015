@@ -516,7 +516,8 @@ void* readTrans(char* nomFichier){
 			case 'a':{
 				//Appel de la fonction associée
 				//addItem(); // Ajout de une VM
-                pthread_create(&tid[nbThread++], NULL, addItem, NULL);
+                nbThread = nbThread + 1;
+                pthread_create(&tid[nbThread], NULL, addItem, NULL);
 				break;
 				}
 			case 'E':
@@ -533,7 +534,8 @@ void* readTrans(char* nomFichier){
                 *args = noVM;
 				//Appel de la fonction associée
 				//removeItem(noVM); // Eliminer une VM
-                pthread_create(&tid[nbThread++], NULL, removeItem, args);
+                nbThread++;
+                pthread_create(&tid[nbThread], NULL, removeItem, args);
 				break;
 				}
 			case 'L':
@@ -549,7 +551,8 @@ void* readTrans(char* nomFichier){
                 args->nstart = nstart;
                 args->nend = nend;
 
-                pthread_create(&tid[nbThread++], NULL, listItems, args);
+                nbThread++;
+                pthread_create(&tid[nbThread], NULL, listItems, args);
 				break;
 				}
 			case 'X':
@@ -557,25 +560,25 @@ void* readTrans(char* nomFichier){
 				//Appel de la fonction associée
 				int noVM = atoi(strtok_r(NULL, " ", &sp));
 				char *nomfich = strtok_r(NULL, "\n", &sp);
-
+ 
                 struct paramX *args;
                 args = malloc(sizeof(struct paramX));
                 args->noVM = noVM;
                 strcpy(args->nomfich, (const char *) nomfich);
-
-                pthread_create(&tid[nbThread++], NULL, executeFile, args);
+                nbThread++;
+                pthread_create(&tid[nbThread], NULL, executeFile, args);
 				break;
 				}
-            // case 'M':
-            // case 'm':{
-            //     int noVM = atoi(strtok_r(NULL, " ", &sp));
-            //     // check how to get second param
-            //     int Lmem = atoi(strtok_r(NULL, "\n", &sp));
-            //     struct paramMod *ptr = (struct paramMod*) malloc(sizeof(struct paramMod));
-            //     ptr->noVM = noVM;
-            //     ptr->Lmem = Lmem;
-            //     pthread_create(&tid[nbThread++], NULL, modifier, ptr);
-            // }
+        //     // case 'M':
+        //     // case 'm':{
+        //     //     int noVM = atoi(strtok_r(NULL, " ", &sp));
+        //     //     // check how to get second param
+        //     //     int Lmem = atoi(strtok_r(NULL, "\n", &sp));
+        //     //     struct paramMod *ptr = (struct paramMod*) malloc(sizeof(struct paramMod));
+        //     //     ptr->noVM = noVM;
+        //     //     ptr->Lmem = Lmem;
+        //     //     pthread_create(&tid[nbThread++], NULL, modifier, ptr);
+        //     // }
 		}
 		//Lecture (tentative) de la prochaine ligne de texte
 		fgets(buffer, 100, f);
@@ -583,8 +586,8 @@ void* readTrans(char* nomFichier){
 	//Fermeture du fichier
 	fclose(f);
 
-    for(int i=0;i<nbThread;i++)
-        pthread_join(&tid[i], NULL);
+    for(int i=1;i<nbThread;i++)
+        pthread_join(tid[i], NULL);
 	//Retour
 	return NULL;
 }
